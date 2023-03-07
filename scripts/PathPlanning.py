@@ -1,10 +1,8 @@
 import numpy as np
 
 class RoomMap:
-    def __init__(self, grid_range_x=[-0.876, 2.045], 
-                 grid_range_y=[-0.876, 1.168], 
-                 obst_ranges=[[[-0.032, 1.194], [-0.603, -0.292]],
-                              [[-0.032, 1.194], [0.286, 0.597]]], 
+    def __init__(self, grid_range_x, grid_range_y,
+                 obst_ranges=None, obst_nodes=None,
                  num_nodes_x=21, num_nodes_y=15):
         """
         Make a new RoomMap object containing all necessary information about area that the crazyflie will use and the grid A* will use for path planning.
@@ -22,23 +20,32 @@ class RoomMap:
         self.num_nodes_y = num_nodes_y
         self.x_max = self.num_nodes_x-1
         self.y_max = self.num_nodes_y-1
-        
+
         self.grid_total_x = self.grid_range_x[1] - self.grid_range_x[0]
         self.grid_total_y = self.grid_range_y[1] - self.grid_range_y[0]
         self.square_width = self.grid_total_x/(self.num_nodes_x-1)
         self.square_height = self.grid_total_y/(self.num_nodes_y-1)
-        
+
         self.blocked_marker = 0
         self.free_marker = 1
-        self.o_map = self.make_o_map(self.num_nodes_x, self.num_nodes_y,
-                                self.obst_ranges, make_walls=True,
-                                free_marker=self.free_marker,
-                                blocked_marker=self.blocked_marker, datatype=int)
-        
-        self.disp_map = self.make_o_map(self.num_nodes_x, self.num_nodes_y,
-                                self.obst_ranges, make_walls=True,
-                                free_marker=self.free_marker,
-                                blocked_marker=self.blocked_marker, datatype=int)
+        self.obst_ranges = obst_ranges
+        self.obst_nodes = obst_nodes
+        if self.obst_ranges != None:
+            self.o_map = self.make_o_map(self.num_nodes_x, self.num_nodes_y,
+                self.obst_ranges, make_walls=True, free_marker=self.free_marker,
+                blocked_marker=self.blocked_marker, datatype=int)
+            self.disp_map = self.make_o_map(self.num_nodes_x, self.num_nodes_y,
+                self.obst_ranges, make_walls=True, free_marker=self.free_marker,
+                blocked_marker=self.blocked_marker, datatype=int)
+        if self.obst_nodes != None:
+            self.o_map = self.make_o_map_from_node_list(
+                self.num_nodes_x, self.num_nodes_y, self.obst_nodes,
+                make_walls=True, free_marker=self.free_marker,
+                blocked_marker=self.blocked_marker, datatype=int)
+            self.disp_map = self.make_o_map_from_node_list(
+                self.num_nodes_x, self.num_nodes_y, self.obst_nodes,
+                make_walls=True, free_marker=self.free_marker,
+                blocked_marker=self.blocked_marker, datatype=int)
 
     def node2coords(self, node_xy):
         """
@@ -93,17 +100,28 @@ class RoomMap:
         for obst_range in obst_ranges:
             node_grid = self.mark_obst(node_grid, obst_range)
         return node_grid
-    
+
+    def make_o_map_from_node_list(self, num_nodes_x, num_nodes_y, obst_nodes, make_walls=True, free_marker=1, blocked_marker=0, datatype=int):
+        """
+        Makes the obstacle map of nodes.
+        """
+        node_grid = np.full([num_nodes_x, num_nodes_y], free_marker, dtype=datatype)
+        if make_walls:
+            node_grid = self.mark_walls(node_grid)
+        for obst_node in obst_nodes:
+            node_grid[obst_node[0], obst_node[1]] = blocked_marker
+        return node_grid
+
     def node_blocked(self, node_x, node_y):
         if ( node_x > self.x_max or node_x < 0 or 
-             node_y > self.m.y_max or node_y < 0 ):
+             node_y > self.y_max or node_y < 0 ):
             return True
         else:
             if self.o_map[node_x, node_y] == self.blocked_marker:
                 return True
             else:
                 return False
-    
+
     def disp_grid_xy(self, node_grid, show_labels=True):
         """
         Displays a node grid with row (node-x) and column (node-y) numbers.
@@ -153,7 +171,7 @@ class Node:
     def __init__(self, gn, node_xy, parent):
         """
         Defines a new Node object.
-        
+
         Args:
             gn (2 element list): Goal node (for this path segment) described as [<node row/x>, <node col/y>]
             node_xy (2 element list): This node's row/x and col/y as [<node row/x>, <node col/y>]
@@ -210,7 +228,7 @@ class Node:
         """
         self.dist = abs(gn[0]-self.x) + abs(gn[1]-self.y)
         self.f = self.dist + self.cost
-    
+
     def add_children(self, child_nodes):
         """
         Add list of child_nodes to self.children.
@@ -222,15 +240,25 @@ class Node:
         Sort the list of children by their f values.
         """
         self.children.sort()
-        
+
     def drop_children(self, keep_num=2):
         """
         Drop all but the best 2 children from this nodes children list.
         """
         if len(self.children) > keep_num:
             self.children = self.children[0:keep_num]
-    
-    
+
+def add_nodes_valid_children(node, m):
+    next_child_list = [Node(node.gn, [node.x+1, node.y], node),
+                           Node(node.gn, [node.x-1, node.y], node),
+                           Node(node.gn, [node.x, node.y+1], node),
+                           Node(node.gn, [node.x, node.y-1], node)]
+    for c in next_child_list: # Remove blocked children
+        if m.node_blocked(c.x, c.y) == True:
+            next_child_list.remove(c)
+        node.add_children(next_child_list)
+        node.sort_children()
+        node.drop_children()
 
 def print_node_list(node_list):
     """
@@ -242,7 +270,7 @@ def print_node_list(node_list):
         string += str(node.parents_list)
         print("  ", string, ";")
     print("]")
-    
+
 def simplify_path(path):
     """
     Remove all nodes from a path that do not indicate a change in direction or the start or end of the path.
@@ -276,7 +304,7 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
     
     # Create start node and find it's children
     start = Node(goal_node_xy, start_node_xy,None)
-    start.find_children()
+    add_nodes_valid_children(start, m)
     
     # Continuously find the children of each node's best children until at least 5 children reach the goal or the path is max_depth children deep.
     sucessful_children = []
@@ -287,16 +315,7 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
             if can.xy == goal_node_xy:
                 sucessful_children.append(can)
             else:
-                next_child_list = [Node(self.gn, [self.x+1, self.y], self),
-                           Node(self.gn, [self.x-1, self.y], self),
-                           Node(self.gn, [self.x, self.y+1], self),
-                           Node(self.gn, [self.x, self.y-1], self)]
-                for c in next_child_list: # Remove blocked children
-                    if m.node_blocked(c.x, c.y) == True:
-                        next_child_list.remove(c)
-                self.add_children(next_child_list)
-                self.sort_children()
-                self.drop_children()
+                add_nodes_valid_children(can,m)
                 new_candidates.extend(can.children)
         candidates = new_candidates
         if len(sucessful_children) > 5:
@@ -307,12 +326,12 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
     if print_options:
         for c in sucessful_children:
             print([c.parents_list, c.xy, c.f])
-    
+
     # If at least one path is found, simplify and convert the best path to coordinates and return the converted path as a list of [x,y] points.
     if len(sucessful_children) > 0 :
         path = sucessful_children[0].parents_list
         path.append(sucessful_children[0].xy)
-        
+
         if simplify_path:
             path = simplify_path(path)
         converted_path = convert_path(path, m)
