@@ -132,8 +132,9 @@ class Quadrotor():
         """advances the system state using a simple kinematic model and the commanded velocity"""
 
         # advance state using vel_cmd
-        self._state.x_pos += vel_cmd.vx * self._time_delta
-        self._state.y_pos += vel_cmd.vy * self._time_delta
+        self._state.x_pos += vel_cmd.vx * cos(self._state.psi) * self._time_delta
+        # self._state.y_pos += vel_cmd.vy * self._time_delta
+        self._state.y_pos += vel_cmd.vx * sin(self._state.psi) * self._time_delta
         self._state.z_pos += vel_cmd.vz * self._time_delta
         self._state.psi += vel_cmd.v_psi * self._time_delta
 

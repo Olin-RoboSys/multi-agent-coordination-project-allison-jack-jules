@@ -49,6 +49,14 @@ class Position:
 
 
 @dataclass
+class Attitude:
+    """This dataclass represents a 3D attitude """
+    phi:    float = 0.0
+    theta:  float = 0.0
+    psi:    float = 0.0
+
+
+@dataclass
 class VelCommand:
     """This dataclass represents a quadrotor velocity command (vx, vy, vz, v_psi) """
     vx:     float = 0.0
