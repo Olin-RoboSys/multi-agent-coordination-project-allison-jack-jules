@@ -6,8 +6,6 @@ import plotly.graph_objects as go
 import yaml
 import time
 
-
-
 def run():
     
     # #########################################################################################################
@@ -169,10 +167,16 @@ def run():
 
     # Upload your functions from Module 2 here
 
+    def upload_paths():
+        paths = gcs.get_agent_paths()
+        for agent in agent_list.values():
+            agent.set_trajectory([point for seq in paths[agent._id] for point in seq])
+    
     def agent_nav(self):
         V = VelCommand()
-        V.vx = 0.2
-        V.vy = 0.0
+        setpoint = self._trajectory[self._traj_index]
+        V.vx = 0.2 * (abs(setpoint[0] - self._state.x_pos) > 0)
+        V.vy = 0.2 * (abs(setpoint[1] - self._state.y_pos) > 0)
         V.vz = 0.0
         V.v_psi = 0.0
         

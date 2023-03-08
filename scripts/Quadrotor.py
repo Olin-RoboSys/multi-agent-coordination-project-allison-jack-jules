@@ -40,6 +40,7 @@ class Quadrotor():
         # task and trajectory
         self._task = None
         self._trajectory = None
+        self._traj_index = 0
 
         # set up system
         # get/set simulation parameters
@@ -76,7 +77,7 @@ class Quadrotor():
                 cb=self.FlowDeckCheck)
             
             # reset the estimator
-            # self.reset_estimator()
+            self.reset_estimator()
 
             # Logging data
             logging.basicConfig(level=logging.ERROR) # Only output errors from the logging framework
@@ -160,7 +161,11 @@ class Quadrotor():
 
 
     def position_setpoint_hw(self, pos_cmd):
-        pass 
+        cf = self.scf.cf
+        cf.commander.send_position_setpoint(pos_cmd[0],
+                                            pos_cmd[1],
+                                            pos_cmd[2],
+                                            pos_cmd[3])
 
 
     def task_complete(self):
@@ -189,10 +194,11 @@ class Quadrotor():
         self.range_front = data['range.front']
         self.range_back = data['range.back']
 
+    def set_trajectory(self, path):
+        self._trajectory = path
 
     def get_pos(self):
         return Position(x=self._state.x_pos, y=self._state.y_pos, z=self._state.z_pos)
-
 
     def get_attitude(self):
         return
