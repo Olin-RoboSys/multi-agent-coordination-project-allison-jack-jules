@@ -5,7 +5,7 @@ from scripts.GroundControl import GroundControlSystem
 import plotly.graph_objects as go
 import yaml
 import time
-
+import numpy as np
 
 
 def run(show_plots=True):
@@ -155,7 +155,7 @@ def run(show_plots=True):
     gcs.generate_agent_paths()
 
     # Plotter
-    # sim.init_plot()
+    sim.init_plot()
 
 
 
@@ -172,15 +172,27 @@ def run(show_plots=True):
     def upload_paths():
         paths = gcs.get_agent_paths()
         for agent in agent_list.values():
-            agent.set_trajectory([point for seq in paths[agent._id] for point in seq])
+            agent_path = [point for path in paths[agent._id] for point in path]
+            print(f"{agent._id}: {agent_path}")
+            agent.set_trajectory(agent_path)
     
-    def agent_nav(self):
+    def agent_nav(self, time_delta):
         V = VelCommand()
-        setpoint = self._trajectory[self._traj_index]
-        V.vx = 0.2 * (abs(setpoint[0] - self._state.x_pos) > 0)
-        V.vy = 0.2 * (abs(setpoint[1] - self._state.y_pos) > 0)
-        V.vz = 0.0
-        V.v_psi = 0.0
+        if self._traj_index < len(self._trajectory):
+            setpoint = self._trajectory[self._traj_index]
+            vec = [setpoint[0] - self._state.x_pos, setpoint[1] - self._state.y_pos]
+            
+            V.vx = vec[0]/time_delta
+            V.vy = vec[1]/time_delta
+            V.vz = 0.0
+            V.v_psi = 0.0
+
+            self._traj_index += 1
+        else:
+            V.vx = 0.0
+            V.vy = 0.0
+            V.vz = 0.0
+            V.v_psi = 0.0
         
         if self._hardware_flag:
             self.velocity_setpoint_hw(V)
@@ -195,6 +207,7 @@ def run(show_plots=True):
     time_lapse = 0
     flight_duration = 5
 
+    upload_paths()
 
     for agent in agent_list.values():
         agent.initialize_agent()
@@ -206,7 +219,7 @@ def run(show_plots=True):
 
         for agent in agent_list.values():
 
-            agent.control_method = agent_nav(agent)
+            agent.control_method = agent_nav(agent, time_delta)
             
             # print out current position of each agent
             x, y, z = agent.get_pos().x, agent.get_pos().y, agent.get_pos().z
@@ -229,4 +242,4 @@ def run(show_plots=True):
 
 
 if __name__ == "__main__":
-    run(show_plots=False)
+    run(show_plots=True)
