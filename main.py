@@ -155,7 +155,8 @@ def run(show_plots=True):
     gcs.generate_agent_paths()
 
     # Plotter
-    sim.init_plot()
+    if show_plots:
+        sim.init_plot()
 
 
 
@@ -244,4 +245,4 @@ def run(show_plots=True):
 
 
 if __name__ == "__main__":
-    run(show_plots=True)
+    run(show_plots=False)
