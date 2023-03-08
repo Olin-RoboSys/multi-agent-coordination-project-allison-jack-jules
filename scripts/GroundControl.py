@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, './scripts')
 from utils import Position, dist
 import networkx as nx
-
+from PathPlanning import RoomMap, find_path
 
 class GroundControlSystem():
     def __init__(self, agent_list=None, task_list=None, env=None):
@@ -12,6 +12,15 @@ class GroundControlSystem():
         self._task_assignment = None
         self._agent_paths = dict()
         self._env = env
+        
+        grid_range_x = [self._env["dimensions"]["x_min"], self._env["dimensions"]["x_max"]]
+        grid_range_y = [self._env["dimensions"]["y_min"], self._env["dimensions"]["y_max"]]
+        print(grid_range_x, grid_range_y)
+        num_nodes_x = grid_range_x[1] - grid_range_x[0] + 1
+        num_nodes_y = grid_range_x[1] - grid_range_x[0] + 1
+        self.room_map = RoomMap(grid_range_x, grid_range_y,
+                            obst_nodes=self._env["obstacles"],
+                            num_nodes_x=num_nodes_x, num_nodes_y=num_nodes_y)
 
     # getters and setters -------------------------------------------------
 
@@ -205,12 +214,51 @@ class GroundControlSystem():
 
 
     def generate_agent_paths(self):
-        """generate path/trajectory for each agent based on assignment"""
-        
+        """generate path/trajectory for each agent based on assignment
+        self._agent_paths is of the form:
+        { # Dictionary of agent ids and paths
+            <agent._id> :   [ # List of this agent's paths
+                                [ # List of x-y coordinates
+                                    [ <x coord>, <y coord> ]
+                                ]
+                            ]
+            <agent._id> :   [ # List of this agent's paths
+                                [ # List of x-y coordinates
+                                    [ <x coord>, <y coord> ]
+                                ]
+                            ]
+        }
+        Access as self._agent_paths[<agent._id>][<path #>][<path (list) #>][<path point #>][<path point coord # (0 for x, 1 for y)>]
+        """
         # your code here...
+        print("generating agent paths")
+        for agent, task in self._task_assignment.items():
+            this_agents_paths_2D = []
+            if type(task) == list:
+                for i in range(len(task)):
+                    start_coords = [agent.get_pos().x, agent.get_pos().y]
+                    pick_coords = [task[i].pick_loc.x, task[i].pick_loc.y]
+                    drop_coords = [task[i].drop_loc.x, task[i].drop_loc.y]
+                    this_agents_paths_2D.append(
+                        find_path(start_coords, pick_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                        )
+                    this_agents_paths_2D.append(
+                        find_path(pick_coords, drop_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                        )
+                    self._agent_paths[agent._id] = this_agents_paths_2D
+            else:
+                start_coords = [agent.get_pos().x, agent.get_pos().y]
+                pick_coords = [task.pick_loc.x, task.pick_loc.y]
+                drop_coords = [task.drop_loc.x, task.drop_loc.y]
+                this_agents_paths_2D.append(
+                    find_path(start_coords, pick_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                    )
+                this_agents_paths_2D.append(
+                    find_path(pick_coords, drop_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                    )
+                self._agent_paths[agent._id] = this_agents_paths_2D
+        print(self._agent_paths)
 
-        self._agent_paths = None
-            
 
     def smoothen_paths(self):
         """applies a b-spline to the waypoints to obtain a continous path

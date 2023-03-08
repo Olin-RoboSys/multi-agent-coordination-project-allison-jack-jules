@@ -6,7 +6,9 @@ import plotly.graph_objects as go
 import yaml
 import time
 
-def run():
+
+
+def run(show_plots=True):
     
     # #########################################################################################################
     #### STEP 1: Define the task list, agent list and environment parameters
@@ -133,15 +135,15 @@ def run():
     #### STEP 3: Implement Multi-Agent Path Finding
     # #########################################################################################################
 
+    if show_plots:
+        fig1 = go.Figure()
+        fig2 = go.Figure()
 
-    fig1 = go.Figure()
-    fig2 = go.Figure()
+        sim = Simulation(env=env, fig1=fig1, fig2=fig2)
 
-    sim = Simulation(env=env, fig1=fig1, fig2=fig2)
-
-    sim.add_agents(agent_list)
-    sim.set_task_list(task_list)
-    sim.init_plot()
+        sim.add_agents(agent_list)
+        sim.set_task_list(task_list)
+        sim.init_plot()
 
 
     # ---------------------------------------------------------------------------------------------------------
@@ -227,4 +229,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    run(show_plots=False)
