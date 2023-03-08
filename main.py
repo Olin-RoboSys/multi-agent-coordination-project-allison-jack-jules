@@ -179,8 +179,10 @@ def run(show_plots=True):
     def agent_nav(self, time_delta):
         V = VelCommand()
         if self._traj_index < len(self._trajectory):
+            current_pos = [self._state.x_pos, self._state.y_pos]
             setpoint = self._trajectory[self._traj_index]
-            vec = [setpoint[0] - self._state.x_pos, setpoint[1] - self._state.y_pos]
+            vec = [setpoint[0] - current_pos[0], setpoint[1] - current_pos[1]]
+            print(f"{vec=}")
             
             V.vx = vec[0]/time_delta
             V.vy = vec[1]/time_delta
