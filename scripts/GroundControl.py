@@ -232,6 +232,8 @@ class GroundControlSystem():
         """
         # your code here...
         print("generating agent paths")
+        print(self.room_map.node2coords([8,13]))
+        print(self.room_map.node2coords([9,13]))
         for agent, task in self._task_assignment.items():
             this_agents_paths_2D = []
             if type(task) == list:
@@ -240,10 +242,10 @@ class GroundControlSystem():
                     pick_coords = [task[i].pick_loc.x, task[i].pick_loc.y]
                     drop_coords = [task[i].drop_loc.x, task[i].drop_loc.y]
                     this_agents_paths_2D.append(
-                        find_path(start_coords, pick_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                        find_path(start_coords, pick_coords, self.room_map)
                         )
                     this_agents_paths_2D.append(
-                        find_path(pick_coords, drop_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                        find_path(pick_coords, drop_coords, self.room_map)
                         )
                     self._agent_paths[agent._id] = this_agents_paths_2D
             else:
@@ -251,11 +253,11 @@ class GroundControlSystem():
                 pick_coords = [task.pick_loc.x, task.pick_loc.y]
                 drop_coords = [task.drop_loc.x, task.drop_loc.y]
                 this_agents_paths_2D.append(
-                    find_path(start_coords, pick_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
+                    find_path(start_coords, pick_coords, self.room_map)
                     )
                 this_agents_paths_2D.append(
-                    find_path(pick_coords, drop_coords, self.room_map, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25)
-                    )
+                    find_path(pick_coords, drop_coords, self.room_map)
+                )
                 self._agent_paths[agent._id] = this_agents_paths_2D
         print(self._agent_paths)
 

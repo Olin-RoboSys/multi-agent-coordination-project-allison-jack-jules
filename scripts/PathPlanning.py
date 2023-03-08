@@ -331,13 +331,14 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
     if len(sucessful_children) > 0 :
         path = sucessful_children[0].parents_list
         path.append(sucessful_children[0].xy)
-
+        print(path)
         if simplify_path:
             path = simplify_path(path)
         converted_path = convert_path(path, m)
         if use_exact_inputs:
-            converted_path[0] = start_coords
-            converted_path[-1] = goal_coords
+            converted_path.insert(0, start_coords)
+            converted_path.append(goal_coords)
+        print(converted_path)
         return converted_path
     # If no path is found, return an empty list
     else:
