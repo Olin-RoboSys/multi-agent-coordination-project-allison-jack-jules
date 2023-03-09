@@ -13,11 +13,11 @@ class GroundControlSystem():
         self._agent_paths = dict()
         self._env = env
         
-        grid_range_x = [self._env["dimensions"]["x_min"], self._env["dimensions"]["x_max"]]
-        grid_range_y = [self._env["dimensions"]["y_min"], self._env["dimensions"]["y_max"]]
+        grid_range_x = [self._env["dimensions"]["x_min"]*0.1, self._env["dimensions"]["x_max"]*0.1]
+        grid_range_y = [self._env["dimensions"]["y_min"]*0.1, self._env["dimensions"]["y_max"]*0.1]
         print(grid_range_x, grid_range_y)
-        num_nodes_x = grid_range_x[1] - grid_range_x[0] + 1
-        num_nodes_y = grid_range_x[1] - grid_range_x[0] + 1
+        num_nodes_x = int(self._env["dimensions"]["x_max"] - self._env["dimensions"]["x_min"] + 1)
+        num_nodes_y = int(self._env["dimensions"]["y_max"] - self._env["dimensions"]["y_min"] + 1)
         self.room_map = RoomMap(grid_range_x, grid_range_y,
                             obst_nodes=self._env["obstacles"],
                             num_nodes_x=num_nodes_x, num_nodes_y=num_nodes_y)
@@ -232,8 +232,7 @@ class GroundControlSystem():
         """
         # your code here...
         print("generating agent paths")
-        print(self.room_map.node2coords([8,13]))
-        print(self.room_map.node2coords([9,13]))
+        print(self.room_map.square_width)
         for agent, task in self._task_assignment.items():
             this_agents_paths_2D = []
             if type(task) == list:

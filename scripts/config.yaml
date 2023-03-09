@@ -1,5 +1,5 @@
 # settings
-use_hardware:   True
+use_hardware:   False
 time_delta:     0.25
 
 #                 Agent ID, Init position, Take-off height
