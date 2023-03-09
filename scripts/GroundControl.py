@@ -231,8 +231,7 @@ class GroundControlSystem():
         Access as self._agent_paths[<agent._id>][<path #>][<path (list) #>][<path point #>][<path point coord # (0 for x, 1 for y)>]
         """
         # your code here...
-        print("generating agent paths")
-        print(self.room_map.square_width)
+        print("Generating agent paths...")
         for agent, task in self._task_assignment.items():
             this_agents_paths_2D = []
             if type(task) == list:
@@ -240,9 +239,11 @@ class GroundControlSystem():
                     start_coords = [agent.get_pos().x, agent.get_pos().y]
                     pick_coords = [task[i].pick_loc.x, task[i].pick_loc.y]
                     drop_coords = [task[i].drop_loc.x, task[i].drop_loc.y]
+                    print(f"Finding path part 1 for {agent._id} task #{i} from {start_coords} to {pick_coords}...")
                     this_agents_paths_2D.append(
                         find_path(start_coords, pick_coords, self.room_map)
                         )
+                    print(f"Finding path part 2 for {agent._id} task #{i} from {pick_coords} to {drop_coords}...")
                     this_agents_paths_2D.append(
                         find_path(pick_coords, drop_coords, self.room_map)
                         )
@@ -251,9 +252,11 @@ class GroundControlSystem():
                 start_coords = [agent.get_pos().x, agent.get_pos().y]
                 pick_coords = [task.pick_loc.x, task.pick_loc.y]
                 drop_coords = [task.drop_loc.x, task.drop_loc.y]
+                print(f"Finding path part 1 for {agent._id} from {start_coords} to {pick_coords}...")
                 this_agents_paths_2D.append(
                     find_path(start_coords, pick_coords, self.room_map)
                     )
+                print(f"Finding path part 2 for {agent._id} from {pick_coords} to {drop_coords}...")
                 this_agents_paths_2D.append(
                     find_path(pick_coords, drop_coords, self.room_map)
                 )

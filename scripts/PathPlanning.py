@@ -284,16 +284,17 @@ def simplify_path(path):
     new_path.append(path[-1])
     return new_path
 
-def convert_path(path, m):
+def convert_path(path, m, round_dig=2):
     """
     Returns the x-y coordinates of each node in the path.
     """
     coord_path = []
     for n in path:
-        coord_path.append(m.node2coords(n))
+        coords = m.node2coords(n)
+        coord_path.append([round(coords[0], round_dig), round(coords[1], round_dig)])
     return coord_path
 
-def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=25):
+def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path=False, print_options=False, max_depth=35):
     """
     Uses A* to find the shortest path from start_coords to goal_coords without hitting any walls or obstacles defined by RoomMap m.
     """
@@ -307,19 +308,26 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
     add_nodes_valid_children(start, m)
     
     # Continuously find the children of each node's best children until at least 5 children reach the goal or the path is max_depth children deep.
+    max_cans = 8
     sucessful_children = []
     candidates = [start]
+    print("Current depth: ", end='')
     for i in range(max_depth):
+        print(i, end=' ')
         new_candidates = []
         for can in candidates:
             if can.xy == goal_node_xy:
                 sucessful_children.append(can)
             else:
-                add_nodes_valid_children(can,m)
+                add_nodes_valid_children(can, m)
                 new_candidates.extend(can.children)
         candidates = new_candidates
+        candidates.sort()
+        if len(candidates) > max_cans:
+            candidates = candidates[:max_cans]
         if len(sucessful_children) > 5:
             break
+    print()
 
     # Sort the children the reached the goal by their f value (dist=0 so f=cost)
     sucessful_children.sort()
