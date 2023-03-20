@@ -215,7 +215,7 @@ class Node:
         children_list = []
         for chi in self.children:
             children_list.append((chi.x, chi.y))
-        return f"Node({self.x}, {self.y}, f={self.f}, dist={self.dist}, "\
+        return f"Node([{self.x}, {self.y}], f={self.f}, dist={self.dist}, "\
                 f"cost={self.cost}, " \
                 f"parents={self.parents_list}, children={children_list})"
 
@@ -244,7 +244,7 @@ class Node:
         """
         self.children.sort()
 
-    def drop_children(self, keep_num=2):
+    def drop_children(self, keep_num=3):
         """
         Drop all but the best 2 children from this nodes children list.
         """
@@ -252,14 +252,19 @@ class Node:
             self.children = self.children[0:keep_num]
 
 def add_nodes_valid_children(node, m):
-    next_child_list = [Node(node.gn, [node.x+1, node.y], node),
-                           Node(node.gn, [node.x-1, node.y], node),
-                           Node(node.gn, [node.x, node.y+1], node),
-                           Node(node.gn, [node.x, node.y-1], node)]
-    for c in next_child_list: # Remove blocked children
-        if m.node_blocked(c.x, c.y) == True:
-            next_child_list.remove(c)
-        node.add_children(next_child_list)
+    # possible_children_list = [Node(node.gn, [node.x+1, node.y], node),
+    #                    Node(node.gn, [node.x-1, node.y], node),
+    #                    Node(node.gn, [node.x, node.y+1], node),
+    #                    Node(node.gn, [node.x, node.y-1], node)]
+    possible_children_list = [Node(node.gn, [node.x, node.y-1], node),
+                       Node(node.gn, [node.x, node.y+1], node),
+                       Node(node.gn, [node.x+1, node.y], node),
+                       Node(node.gn, [node.x-1, node.y], node)]
+    valid_children = []
+    for c in possible_children_list: # Only take unblocked children
+        if m.node_blocked(c.x, c.y) == False:
+            valid_children.append(c)
+        node.add_children(valid_children)
         node.sort_children()
         node.drop_children()
 
@@ -311,7 +316,7 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
     add_nodes_valid_children(start, m)
     
     # Continuously find the children of each node's best children until at least 5 children reach the goal or the path is max_depth children deep.
-    max_cans = 8
+    max_cans = 50
     sucessful_children = []
     candidates = [start]
     print("Current depth: ", end='')
@@ -326,13 +331,14 @@ def find_path(start_coords, goal_coords, m, use_exact_inputs=True, simplify_path
                 new_candidates.extend(can.children)
         candidates = new_candidates
         candidates.sort()
+        # print("CANDIDATES: ", candidates)
         if len(candidates) > max_cans:
             candidates = candidates[:max_cans]
         if len(sucessful_children) > 5:
             break
     print()
 
-    # Sort the children the reached the goal by their f value (dist=0 so f=cost)
+    # Sort children that reached the goal by their f value (dist=0 so f=cost)
     sucessful_children.sort()
     if print_options:
         for c in sucessful_children:
