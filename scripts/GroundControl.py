@@ -235,10 +235,12 @@ class GroundControlSystem():
         for agent, task in self._task_assignment.items():
             this_agents_paths_2D = []
             if type(task) == list:
+                last_coords = [agent.get_pos().x, agent.get_pos().y]
                 for i in range(len(task)):
-                    start_coords = [agent.get_pos().x, agent.get_pos().y]
+                    start_coords = last_coords
                     pick_coords = [task[i].pick_loc.x, task[i].pick_loc.y]
                     drop_coords = [task[i].drop_loc.x, task[i].drop_loc.y]
+                    last_coords = drop_coords
                     print(f"Finding path part 1 for {agent._id} task #{i} from {start_coords} to {pick_coords}...")
                     this_agents_paths_2D.append(
                         find_path(start_coords, pick_coords, self.room_map)
