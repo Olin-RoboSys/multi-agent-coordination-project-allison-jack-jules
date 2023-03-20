@@ -208,7 +208,7 @@ def run(show_plots=True):
     # #########################################################################################################
 
     time_lapse = 0
-    flight_duration = 5
+    flight_duration = 20
 
     upload_paths()
 
