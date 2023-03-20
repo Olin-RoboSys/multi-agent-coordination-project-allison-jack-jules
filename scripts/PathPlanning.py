@@ -109,7 +109,10 @@ class RoomMap:
         if make_walls:
             node_grid = self.mark_walls(node_grid)
         for obst_node in obst_nodes:
-            node_grid[obst_node[0], obst_node[1]] = blocked_marker
+            obst_x_m = obst_node[0]*0.1
+            obst_y_m = obst_node[1]*0.1
+            node_rc = self.coords2node([obst_x_m, obst_y_m])
+            node_grid[node_rc[0], node_rc[1]] = blocked_marker
         return node_grid
 
     def node_blocked(self, node_x, node_y):

@@ -232,6 +232,7 @@ class GroundControlSystem():
         """
         # your code here...
         print("Generating agent paths...")
+        self.room_map.disp_grid_xy(self.room_map.o_map)
         for agent, task in self._task_assignment.items():
             this_agents_paths_2D = []
             if type(task) == list:
