@@ -252,10 +252,6 @@ class Node:
             self.children = self.children[0:keep_num]
 
 def add_nodes_valid_children(node, m):
-    # possible_children_list = [Node(node.gn, [node.x+1, node.y], node),
-    #                    Node(node.gn, [node.x-1, node.y], node),
-    #                    Node(node.gn, [node.x, node.y+1], node),
-    #                    Node(node.gn, [node.x, node.y-1], node)]
     possible_children_list = [Node(node.gn, [node.x, node.y-1], node),
                        Node(node.gn, [node.x, node.y+1], node),
                        Node(node.gn, [node.x+1, node.y], node),
